@@ -6,6 +6,7 @@ type Product = {
   name: string;
   description: string;
   price: number;
+  image_url?: string;
 };
 
 export default function Products() {
@@ -15,11 +16,13 @@ export default function Products() {
     fetchProducts();
 
     const channel = supabase
-      .channel("products-channel")
+      .channel("public:products")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "products" },
-        () => fetchProducts()
+        () => {
+          fetchProducts();
+        }
       )
       .subscribe();
 
@@ -34,14 +37,23 @@ export default function Products() {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Product List (Live)</h1>
-      <ul className="space-y-3">
+    <div>
+      <h2 className="text-2xl font-bold mb-4">All Products</h2>
+      <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {products.map((p) => (
-          <li key={p.id} className="border p-4 rounded shadow">
-            <h2 className="text-xl font-semibold">{p.name}</h2>
-            <p>{p.description}</p>
-            <p className="text-green-600 font-bold">${p.price}</p>
+          <li key={p.id} className="border p-4 rounded shadow bg-white">
+            <h3 className="text-xl font-semibold">{p.name}</h3>
+            {p.image_url && (
+              <img
+                src={p.image_url}
+                alt={p.name}
+                className="w-full h-48 object-cover rounded mt-2"
+              />
+            )}
+            <p className="mt-2 text-sm text-gray-700">{p.description}</p>
+            <p className="text-green-600 font-bold mt-1">
+              ${p.price.toFixed(2)}
+            </p>
           </li>
         ))}
       </ul>
